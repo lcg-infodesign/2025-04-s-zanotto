@@ -1,11 +1,20 @@
 let data; 
 let minLat, minLon, maxLat, maxLon;
 let minElev, maxElev; 
-let margin = 70;
-let chartW, chartH;
-let mapW; // Larghezza  Mappa
-let panelW; // Larghezza Pannello/Legenda/Filtri
-let panelX; // Posizione X del pannello
+let margin = 40;
+
+// let chartW, chartH;
+// let mapW; // Larghezza  Mappa
+// let panelW; // Larghezza Pannello/Legenda/Filtri
+// let panelX; // Posizione X del pannello
+
+const CANVAS_W = 1200; 
+const CANVAS_H = 1000; // Altezza aumentata per i pannelli sotto
+const MAP_W = 1120;    // Larghezza quasi completa per la Mappa
+const MAP_H = 700;     // Altezza dedicata alla Mappa
+
+const DETAIL_BAR_H = 100; // Altezza della barra Dettagli sotto la Mappa
+const LEGEND_FILTER_Y_START = MAP_H + DETAIL_BAR_H; // Inizio della sezione Controlli
 
 let typeCounts = {}; // Contenitore per il conteggio dei TypeCategory
 let filterButtons = {}; // Contenitore per le aree cliccabili dei filtri
@@ -17,9 +26,7 @@ function preload() {
 }
 
 function setup() {
-  let canvasWidth = 1200;
-  let canvasHeight = 850;
-  createCanvas(canvasWidth, canvasHeight);
+  createCanvas(CANVAS_W, CANVAS_H);
   textFont("Futura");
 
   // Definizione delle aree
@@ -60,25 +67,27 @@ function setup() {
   maxElev = max(allElev);
 }
 
-// --- FUNZIONE DRAW ---
+
 function draw() {
   background(10); // Sfondo scuro
+  const TITLE_Y = margin;
+  const MAP_Y_START = TITLE_Y + 70;
 
   // PANNELLO (Sfondo e separatore)
   fill(25); // Colore leggermente più chiaro per il pannello
   rect(panelX, 0, panelW, height);
-  stroke(255);
+  noStroke();
   line(panelX, 0, panelX, height);
   noStroke();
 
   let titleY = margin;
 
   // TITOLO
-  fill(255, 190, 11);
+  fill(251, 86, 7);
   textSize(32);
   textStyle(BOLD);
   textAlign(LEFT);
-  text("VOLCANOES OF THE WORLD: Status and Elevation", margin, titleY); 
+  text("VOLCANOES OF THE WORLD", margin, titleY); 
   textStyle(NORMAL);
   textSize(14);
   text("Size by Elevation, Color by Activity Status. Click filters on the right.", margin, titleY + 25);
@@ -87,8 +96,8 @@ function draw() {
   let mapYOffset = titleY + 60; // Inizio della mappa (Visione d'Insieme)
   
   // Colori per lo Status
-  let activeColor = color(255, 100, 0, 200);   // Arancione/Rosso (Attivo/Historical/D1/D2/D3)
-  let dormantColor = color(58, 134, 255, 200); // Blu (Holocene/U)
+  let activeColor = color(255, 89, 94, 200);   // Arancione/Rosso (Attivo/Historical/D1/D2/D3)
+  let dormantColor = color(138, 201, 38, 200); // Blu (Holocene/U)
   let otherColor = color(150, 150, 150, 200);  // Grigio (Sconosciuto/Altro)
 
   // Disegno della Mappa dei Vulcani
@@ -148,7 +157,7 @@ function draw() {
   // Se c'è un vulcano in hover, evidenzialo
   if (closestRow !== null) {
     // Evidenziazione: bordo giallo attorno al quadrato
-    stroke(255, 190, 11);
+    stroke("white");
     strokeWeight(3);
     noFill();
     rect(closestX, closestY, closestSize + 5, closestSize + 5); 
@@ -180,10 +189,10 @@ function drawVolcanoInfo(row, infoX, infoY) {
     rect(infoX - 10, infoY - 10, panelW - 30, 180);
 
     // Testo vulcano
-    fill(255, 190, 11);
+    fill(251, 86, 7);
     textSize(18);
     textStyle(BOLD);
-    text("Selected Volcano Details:", infoX, infoY);
+    text(infoX, infoY);
     textSize(16);
     text(name, infoX, infoY + 25);
     textStyle(NORMAL);
@@ -200,7 +209,7 @@ function drawVolcanoInfo(row, infoX, infoY) {
 function drawLegend(activeCol, dormantCol, minE, maxE, legendX, legendY) {
   rectMode(CORNER);
 
-  fill(255, 190, 11);
+  fill(251, 86, 7);
   textSize(18);
   textStyle(BOLD);
   text("MAP LEGEND", legendX, legendY);
@@ -242,10 +251,10 @@ function drawLegend(activeCol, dormantCol, minE, maxE, legendX, legendY) {
 function drawFilters(filterX, filterY) {
     let yPos = filterY;
     
-    fill(255, 190, 11);
+    fill(251, 86, 7);
     textSize(18);
     textStyle(BOLD);
-    text("FILTERS (TypeCategory)", filterX, yPos);
+    text("FILTERS", filterX, yPos);
     yPos += 30;
 
     // Ordina i tipi per conteggio (dal più comune al meno comune)
@@ -278,7 +287,7 @@ function drawFilterButton(label, y) {
     let isHover = mouseX > x && mouseX < x + BOX_W && mouseY > y && mouseY < y + BOX_H;
     
     if (isActive) {
-        fill(255, 190, 11); // Colore attivo (Giallo/Arancione)
+        fill(251, 86, 7); // Colore attivo (Arancione)
     } else if (isHover) {
         fill(50, 50, 50); // Grigio scuro per hover
     } else {
