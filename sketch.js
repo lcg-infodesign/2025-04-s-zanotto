@@ -18,14 +18,14 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  textFont("Garamond");
+  textFont("Futura");
 
   // Definizione delle aree
   margin = Math.max(20, windowWidth * MARGIN_RATIO);
   mapW = windowWidth * 0.7 - margin;
   panelW = windowWidth * 0.3;
   panelX = windowWidth * 0.7;
-  mapH = windowHeight - 380;
+  mapH = windowHeight - 280;
   panelH = windowHeight - margin;
 
   let allLat = [];
