@@ -18,7 +18,7 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  textFont("Futura");
+  textFont("Garamond");
 
   // Definizione delle aree
   margin = Math.max(20, windowWidth * MARGIN_RATIO);
