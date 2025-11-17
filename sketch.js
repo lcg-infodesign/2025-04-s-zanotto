@@ -25,7 +25,7 @@ function setup() {
   mapW = windowWidth * 0.7 - margin;
   panelW = windowWidth * 0.3;
   panelX = windowWidth * 0.7;
-  mapH = windowHeight - 200;
+  mapH = windowHeight - 280;
   panelH = windowHeight - margin;
 
   let allLat = [];
