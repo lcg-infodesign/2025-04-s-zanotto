@@ -3,22 +3,13 @@ let minLat, minLon, maxLat, maxLon;
 let minElev, maxElev; 
 let margin = 40;
 
-// let chartW, chartH;
-// let mapW; // Larghezza  Mappa
-// let panelW; // Larghezza Pannello/Legenda/Filtri
-// let panelX; // Posizione X del pannello
+let mapW, mapH, panelW, panelX, panelH;
+const DETAIL_BAR_H = 120;
+const MARGIN_RATIO = 0.04;
 
-const CANVAS_W = 1200; 
-const CANVAS_H = 1000; // Altezza aumentata per i pannelli sotto
-const MAP_W = 1120;    // Larghezza quasi completa per la Mappa
-const MAP_H = 700;     // Altezza dedicata alla Mappa
-
-const DETAIL_BAR_H = 100; // Altezza della barra Dettagli sotto la Mappa
-const LEGEND_FILTER_Y_START = MAP_H + DETAIL_BAR_H; // Inizio della sezione Controlli
-
-let typeCounts = {}; // Contenitore per il conteggio dei TypeCategory
-let filterButtons = {}; // Contenitore per le aree cliccabili dei filtri
-let currentFilter = 'All'; // Filtro attivo di default
+let typeCounts = {};
+let filterButtons = {};
+let currentFilter = 'All';
 
 
 function preload() {
@@ -26,14 +17,16 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(CANVAS_W, CANVAS_H);
+  createCanvas(windowWidth, windowHeight);
   textFont("Futura");
 
   // Definizione delle aree
-  mapW = width * 0.7; // 70% per la mappa (Visione d'Insieme)
-  panelW = width * 0.3; // 30% per i controlli/dettagli
-  panelX = mapW;
-  chartH = height - margin; // Altezza utilizzabile della mappa
+  margin = Math.max(20, windowWidth * MARGIN_RATIO);
+  mapW = windowWidth * 0.7 - margin;
+  panelW = windowWidth * 0.3;
+  panelX = windowWidth * 0.7;
+  mapH = windowHeight - 200;
+  panelH = windowHeight - margin;
 
   let allLat = [];
   let allLon = [];
@@ -71,29 +64,30 @@ function setup() {
 function draw() {
   background(10); // Sfondo scuro
   const TITLE_Y = margin;
-  const MAP_Y_START = TITLE_Y + 70;
+  const MAP_Y_START = TITLE_Y + 70
+  const MAP_Y_END = MAP_Y_START + mapH;
+  const INFO_Y_START = MAP_Y_END + 10;
 
   // PANNELLO (Sfondo e separatore)
   fill(25); // Colore leggermente più chiaro per il pannello
   rect(panelX, 0, panelW, height);
-  noStroke();
+  stroke(100);
+  strokeWeight(1);
   line(panelX, 0, panelX, height);
   noStroke();
-
-  let titleY = margin;
 
   // TITOLO
   fill(251, 86, 7);
   textSize(32);
   textStyle(BOLD);
   textAlign(LEFT);
-  text("VOLCANOES OF THE WORLD", margin, titleY); 
+  text("VOLCANOES OF THE WORLD", margin, TITLE_Y); 
   textStyle(NORMAL);
   textSize(14);
-  text("Size by Elevation, Color by Activity Status. Click filters on the right.", margin, titleY + 25);
+  text("Size by Elevation, Color by Activity Status. Click filters on the right.", margin, TITLE_Y + 25);
 
 
-  let mapYOffset = titleY + 60; // Inizio della mappa (Visione d'Insieme)
+  // let mapYOffset = titleY + 60; // Inizio della mappa (Visione d'Insieme)
   
   // Colori per lo Status
   let activeColor = color(255, 89, 94, 200);   // Arancione/Rosso (Attivo/Historical/D1/D2/D3)
@@ -119,7 +113,7 @@ function draw() {
 
     // Mappa Lat/Lon a coordinate X/Y all'interno dell'area mappa (mapW)
     let x = map(lon, minLon, maxLon, margin, mapW - margin);
-    let y = map(lat, minLat, maxLat, chartH - margin, mapYOffset);
+    let y = map(lat, minLat, maxLat, MAP_Y_END - margin, MAP_Y_START);
     
     // Mappa Altitudine alla Dimensione del Quadrato
     let size = map(elev, minElev, maxElev, 4, 20); 
@@ -135,10 +129,8 @@ function draw() {
     }
     
     // Distanza dal mouse (solo sull'area mappa)
-    if (mouseX < mapW) {
+    if (mouseX < panelX && mouseX > 0 && mouseY > MAP_Y_START && mouseY < MAP_Y_END) {
         let d = dist(x, y, mouseX, mouseY);
-
-        // Gestione dell'hover
         if (d < size * 0.7 && d < closestDist) {
             closestDist = d; 
             closestRow = i;
@@ -163,17 +155,17 @@ function draw() {
     rect(closestX, closestY, closestSize + 5, closestSize + 5); 
     noStroke();
     
-    // Dettagli a Richiesta
-    drawVolcanoInfo(closestRow, panelX + 20, mapYOffset + 10);
+    // info vulcano (sotto mappa)
+    drawVolcanoInfo(closestRow, margin, INFO_Y_START, panelX - margin * 2);
   }
 
   // Disegno Legenda e Filtri (pannello di destra)
-  drawLegend(activeColor, dormantColor, minElev, maxElev, panelX + 20, titleY + 60);
-  drawFilters(panelX + 20, titleY + 300);
+  drawLegend(activeColor, dormantColor, minElev, maxElev, panelX + 20, TITLE_Y + 60);
+  drawFilters(panelX + 20, TITLE_Y + 300);
 }
 
 // --- DETTAGLI A RICHIESTA (INFO VULCANO) ---
-function drawVolcanoInfo(row, infoX, infoY) {
+function drawVolcanoInfo(row, infoX, infoY, maxWidth) {
     
     let name = data.getString(row, "Volcano Name");
     let country = data.getString(row, "Country");
@@ -184,9 +176,11 @@ function drawVolcanoInfo(row, infoX, infoY) {
     let lat = data.getString(row, "Latitude");
     let lon = data.getString(row, "Longitude");
 
+    const BOX_H = DETAIL_BAR_H - 10;
+
     // Sfondo per la sezione info
-    fill(10, 10, 10);
-    rect(infoX - 10, infoY - 10, panelW - 30, 180);
+    // fill(10, 10, 10);
+    rect(infoX, infoY, maxWidth, BOX_H, 5);
 
     // Testo vulcano
     fill(251, 86, 7);
@@ -320,8 +314,9 @@ function mouseClicked() {
 
 // --- INTERAZIONE (Mouse Move) ---
 function mouseMoved() {
-    // Aggiorna solo se il mouse è sull'area della mappa (per i dettagli)
-    if (mouseX < mapW) {
-        redraw();
-    }
+    redraw();
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
